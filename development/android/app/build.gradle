@@ -1,0 +1,116 @@
+/*
+ * Copyright (c) 2019 Cheese and Bacon Games, LLC
+ * This file is licensed under the MIT License.
+ * See the file docs/LICENSE.txt for the full license text.
+ */
+
+def buildAsLibrary = project.hasProperty('BUILD_AS_LIBRARY');
+def buildAsApplication = !buildAsLibrary
+
+if (buildAsApplication) {
+    apply plugin: 'com.android.application'
+} else {
+    apply plugin: 'com.android.library'
+}
+
+android {
+    compileSdkVersion build_versions.target_sdk
+    buildToolsVersion build_versions.build_tools
+
+    defaultConfig {
+        if (buildAsApplication) {
+            applicationId "org.cheeseandbacon.pirates"
+        }
+
+        targetSdkVersion build_versions.target_sdk
+        minSdkVersion build_versions.min_sdk
+
+        versionCode deps.version_code
+        versionName deps.version_name
+
+        externalNativeBuild {
+            ndkBuild {
+                arguments deps.ndk_arguments
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility build_versions.java
+        targetCompatibility build_versions.java
+    }
+
+    dependencies {
+        implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+        // Google Play Services
+        implementation deps.google_play.base
+        implementation deps.google_play.auth
+        implementation deps.google_play.games
+    }
+
+    lintOptions {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+
+    signingConfigs {
+        release {
+            keyAlias 'KEY_ALIAS'
+            keyPassword "KEY_PASSWORD"
+            storeFile file('STORE_FILE')
+            storePassword "STORE_PASSWORD"
+        }
+
+        debug {
+            keyAlias 'KEY_ALIAS'
+            keyPassword "KEY_PASSWORD"
+            storeFile file('STORE_FILE')
+            storePassword "STORE_PASSWORD"
+        }
+    }
+
+    buildTypes {
+        release {
+            debuggable false
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+
+        debug {
+            debuggable true
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            matchingFallbacks = ['debug']
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
+        sourceSets.main {
+            jniLibs.srcDir 'libs'
+        }
+
+        externalNativeBuild {
+            ndkBuild {
+                path 'jni/Android.mk'
+            }
+        }
+    }
+
+    if (buildAsLibrary) {
+        libraryVariants.all { variant ->
+            variant.outputs.each { output ->
+                def outputFile = output.outputFile
+                if (outputFile != null && outputFile.name.endsWith(".aar")) {
+                    def fileName = "org.libsdl.app.aar";
+                    output.outputFile = new File(outputFile.parent, fileName);
+                }
+            }
+        }
+    }
+}

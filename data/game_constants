@@ -1,0 +1,50 @@
+// The source code generator script recognizes a few special tags/elements that are ignored by the engine:
+//
+// <script_ignore>
+// The constant is ignored completely by the script, and it is in no way added to the source code
+//
+// <script_no_declare>
+// The constant is not declared in game_constants.h, and is not given an initial value in game_constants.cpp
+//
+// type:TYPE
+// The constant is declared, initialized, and setup according to its type
+// Valid types:
+// double
+// float
+// bool
+// string
+// int64_t
+// int32_t
+// int16_t
+// int8_t
+// uint64_t
+// uint32_t
+// uint16_t
+// uint8_t
+
+<game_constant>
+	<script_ignore>
+	name:zoom_rate
+	value:0.1
+	type:double
+</game_constant>
+
+<game_constant>
+	<script_ignore>
+	name:zoom_min
+	value:0.5
+	type:double
+</game_constant>
+
+<game_constant>
+	<script_ignore>
+	name:zoom_max
+	value:2.0
+	type:double
+</game_constant>
+
+/*<game_constant>
+	name:example_constant
+	value:1.0
+	type:double
+</game_constant>*/

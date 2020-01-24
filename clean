@@ -1,0 +1,118 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR
+
+# Load needed build system options
+
+read_option () {
+	IFS='=' read -ra LINE_PARTS <<< "$1"
+
+	if [ ${#LINE_PARTS[@]} -ge 2 ]; then
+		echo "${LINE_PARTS[1]}"
+	else
+		echo ""
+	fi
+}
+
+OPTION_REBUILD_IMAGES="true"
+OPTION_REBUILD_MUSIC="true"
+OPTION_REBUILD_SOUNDS="true"
+
+if [ -f "development/build-system-options" ]; then
+    while read line
+    do
+        if ! [[ $line =~ ^\# ]]; then
+            if [[ $line =~ ^rebuild_images ]]; then
+                result=$(read_option "$line")
+
+                if [ -n "$result" ]; then
+                    OPTION_REBUILD_IMAGES="$result"
+                fi
+            fi
+
+            if [[ $line =~ ^rebuild_music ]]; then
+                result=$(read_option "$line")
+
+                if [ -n "$result" ]; then
+                    OPTION_REBUILD_MUSIC="$result"
+                fi
+            fi
+
+            if [[ $line =~ ^rebuild_sounds ]]; then
+                result=$(read_option "$line")
+
+                if [ -n "$result" ]; then
+                    OPTION_REBUILD_SOUNDS="$result"
+                fi
+            fi
+        fi
+    done <"development/build-system-options"
+fi
+
+# Done loading build system options
+
+rm -rf "CMakeFiles/"
+rm -rf ".objs/"
+rm -rf "bin/"
+rm -rf "include/"
+rm -rf "lib/"
+rm -rf "share/"
+rm -rf "mods/"
+rm -rf "screenshots/"
+
+rm -f "lib64"
+rm -f "pyvenv.cfg"
+
+rm -f *Windows-x86_64.exe
+rm -f *Windows-Debug-x86_64.exe
+rm -f *Linux-x86_64
+rm -f *Linux-Debug-x86_64
+rm -f *macOS-x86_64
+
+rm -f "options.cfg"
+rm -f "game_commands.cfg"
+
+rm -f "error_log.txt"
+rm -f "servers.txt"
+
+rm -f *_TEMPORARY
+rm -f *_BACKUP
+
+rm -f "docs/build-information"
+
+rm -f "CMakeCache.txt"
+rm -f "Makefile"
+rm -f "cmake_install.cmake"
+rm -f "compile_commands.json"
+
+rm -f "log-Release-Android"
+rm -f "log-Release-Linux-x86_64"
+rm -f "log-Debug-Linux-x86_64"
+rm -f "log-Release-macOS-x86_64"
+rm -f "log-Release-Windows-x86_64"
+
+rm -f "libsteam_api.so"
+rm -f "libsteam_api.dylib"
+rm -f "steam_appid.txt"
+
+rm -f *.dll
+rm -f *.depend
+rm -f *.cscope_file_list
+
+rm -f "Thumbs.db"
+rm -f ".DS_Store"
+
+$HOME/build-server/cheese-engine/tools/build-system/scripts/clean-android "$DIR"
+
+if [ "$OPTION_REBUILD_IMAGES" == "true" ]; then
+    $HOME/build-server/cheese-engine/tools/build-system/scripts/data/clean-images "$DIR"
+fi
+
+if [ "$OPTION_REBUILD_MUSIC" == "true" ]; then
+    $HOME/build-server/cheese-engine/tools/build-system/scripts/data/clean-music "$DIR"
+fi
+
+if [ "$OPTION_REBUILD_SOUNDS" == "true" ]; then
+    $HOME/build-server/cheese-engine/tools/build-system/scripts/data/clean-sounds "$DIR"
+fi

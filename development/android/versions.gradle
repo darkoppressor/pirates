@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2019 Cheese and Bacon Games, LLC
+ * This file is licensed under the MIT License.
+ * See the file docs/LICENSE.txt for the full license text.
+ */
+
+// Shared file between builds so that they can all use the same dependencies and repositories
+
+ext.deps = [:]
+def deps = [:]
+
+def build_versions = [:]
+build_versions.target_sdk = 29
+build_versions.min_sdk = 26
+build_versions.build_tools = '29.0.2'
+build_versions.java = JavaVersion.VERSION_1_8
+ext.build_versions = build_versions
+
+def versions = [:]
+versions.android_gradle_plugin = '3.5.1'
+versions.google_play_base = '17.1.0'
+versions.google_play_auth = '17.0.0'
+versions.google_play_games = '18.0.1'
+
+def google_play = [:]
+google_play.base = "com.google.android.gms:play-services-base:$versions.google_play_base"
+google_play.auth = "com.google.android.gms:play-services-auth:$versions.google_play_auth"
+google_play.games = "com.google.android.gms:play-services-games:$versions.google_play_games"
+deps.google_play = google_play
+
+deps.android_gradle_plugin = "com.android.tools.build:gradle:$versions.android_gradle_plugin"
+
+deps.version_code = 1
+deps.version_name = '0.0.1'
+
+deps.ndk_arguments = "APP_PLATFORM=android-$build_versions.min_sdk"
+
+ext.deps = deps
+
+static def addRepos (RepositoryHandler handler) {
+    handler.google()
+    handler.jcenter()
+}
+
+ext.addRepos = this.&addRepos

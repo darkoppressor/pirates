@@ -1,0 +1,7 @@
+# If these are set to true, their corresponding data files will be cleaned and built
+# at the beginning of the build process
+rebuild_images=true
+rebuild_music=true
+rebuild_sounds=true
+google_play_service_account=
+android_package_name=

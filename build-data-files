@@ -1,0 +1,68 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR
+
+# Load needed build system options
+
+read_option () {
+	IFS='=' read -ra LINE_PARTS <<< "$1"
+
+	if [ ${#LINE_PARTS[@]} -ge 2 ]; then
+		echo "${LINE_PARTS[1]}"
+	else
+		echo ""
+	fi
+}
+
+OPTION_REBUILD_IMAGES="true"
+OPTION_REBUILD_MUSIC="true"
+OPTION_REBUILD_SOUNDS="true"
+
+if [ -f "development/build-system-options" ]; then
+    while read line
+    do
+        if ! [[ $line =~ ^\# ]]; then
+            if [[ $line =~ ^rebuild_images ]]; then
+                result=$(read_option "$line")
+
+                if [ -n "$result" ]; then
+                    OPTION_REBUILD_IMAGES="$result"
+                fi
+            fi
+
+            if [[ $line =~ ^rebuild_music ]]; then
+                result=$(read_option "$line")
+
+                if [ -n "$result" ]; then
+                    OPTION_REBUILD_MUSIC="$result"
+                fi
+            fi
+
+            if [[ $line =~ ^rebuild_sounds ]]; then
+                result=$(read_option "$line")
+
+                if [ -n "$result" ]; then
+                    OPTION_REBUILD_SOUNDS="$result"
+                fi
+            fi
+        fi
+    done <"development/build-system-options"
+fi
+
+# Done loading build system options
+
+if [ "$OPTION_REBUILD_IMAGES" == "true" ]; then
+    $HOME/build-server/cheese-engine/tools/build-system/scripts/data/build-images "$DIR"
+fi
+
+if [ "$OPTION_REBUILD_MUSIC" == "true" ]; then
+    $HOME/build-server/cheese-engine/tools/build-system/scripts/data/build-music "$DIR"
+fi
+
+if [ "$OPTION_REBUILD_SOUNDS" == "true" ]; then
+    $HOME/build-server/cheese-engine/tools/build-system/scripts/data/build-sounds "$DIR"
+fi
+
+cp "$HOME/build-server/steamworks-sdk/redistributable_bin/linux64/libsteam_api.so" "$DIR"
+echo "$(sed -ne "/^\s*steam_app_id:/p" "data/engine" | sed -e "s/^\s*steam_app_id://")" > "$DIR/steam_appid.txt"
