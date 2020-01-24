@@ -33,6 +33,12 @@ development/android/jni/x86/**
 development/android/jni/x86_64/**
 development/android/local.properties
 
+tools/bin/**
+tools/include/**
+tools/lib/**
+tools/share/**
+tools/pyvenv.cfg
+
 /*lib64
 /*pyvenv.cfg
 

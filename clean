@@ -61,6 +61,12 @@ rm -rf "share/"
 rm -rf "mods/"
 rm -rf "screenshots/"
 
+rm -rf "tools/bin/"
+rm -rf "tools/include/"
+rm -rf "tools/lib/"
+rm -rf "tools/share/"
+rm -f "tools/pyvenv.cfg"
+
 rm -f "lib64"
 rm -f "pyvenv.cfg"
 
