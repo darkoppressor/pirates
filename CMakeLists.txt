@@ -17,10 +17,16 @@ game_manager_defs.cpp
 game_options.cpp
 main.cpp
 network_game.cpp
+player.cpp
+ship_type.cpp
+ship.cpp
 special_info.cpp
+tile_type.cpp
+tile.cpp
 version.cpp
 window_close_function.cpp
 window_scrolling_buttons.cpp
+world_type.cpp
 )
 
 ########################################################################################################################

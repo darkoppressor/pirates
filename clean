@@ -61,6 +61,9 @@ rm -rf "share/"
 rm -rf "mods/"
 rm -rf "screenshots/"
 
+# Remove all files and directories except for .gitkeep
+rm -rf $DIR/data/world_chunks/*
+
 rm -rf "tools/bin/"
 rm -rf "tools/include/"
 rm -rf "tools/lib/"

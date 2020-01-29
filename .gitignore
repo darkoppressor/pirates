@@ -10,10 +10,12 @@ screenshots/**
 data/images/**
 data/music/**
 data/sounds/**
+data/world_chunks/**
 
 !data/images/.gitkeep
 !data/music/.gitkeep
 !data/sounds/.gitkeep
+!data/world_chunks/.gitkeep
 
 development/android/.gradle/**
 development/android/assets/**

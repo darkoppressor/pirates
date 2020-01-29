@@ -5,7 +5,9 @@
 #ifndef game_data_h
 #define game_data_h
 
-///#include "example_game_tag.h"
+#include "world_type.h"
+#include "tile_type.h"
+#include "ship_type.h"
 
 #include <progress_bar.h>
 #include <file_io.h>
@@ -14,7 +16,9 @@
 
 class Game_Data {
     private:
-    ///static std::vector<Example_Game_Tag> example_game_tags;
+        static std::vector<WorldType> worldTypes;
+        static std::vector<TileType> tileTypes;
+        static std::vector<ShipType> shipTypes;
 
     public:
         // The total number of progress bar items in load_data_game()
@@ -25,9 +29,12 @@ class Game_Data {
         // Returns true otherwise
         static void load_data_tag_game(std::string tag, File_IO_Load* load);
         static void unload_data_game();
-
-        ///static void load_example_game_tag(File_IO_Load* load);
-        ///static Example_Game_Tag* get_example_game_tag(std::string name);
+        static void loadWorldTypes(File_IO_Load* load);
+        static WorldType* getWorldType(std::string name);
+        static void loadTileTypes(File_IO_Load* load);
+        static TileType* getTileType(std::string name);
+        static void loadShipTypes(File_IO_Load* load);
+        static ShipType* getShipType(std::string name);
 };
 
 #endif
