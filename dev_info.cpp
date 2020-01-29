@@ -2,6 +2,8 @@
 /* This file is licensed under the MIT License. */
 /* See the file docs/LICENSE.txt for the full license text. */
 
+#include "game.h"
+
 #include <engine.h>
 #include <game_manager.h>
 #include <font.h>
@@ -22,6 +24,15 @@ void Engine::render_dev_info () {
         msg += "Camera Size: " + Strings::num_to_string(Game_Manager::camera.w / Game_Manager::camera_zoom) + "," +
                Strings::num_to_string(Game_Manager::camera.h / Game_Manager::camera_zoom) + "\n";
         msg += "Camera Zoom: " + Strings::num_to_string(Game_Manager::camera_zoom) + "\n";
+
+        msg += "\nPlayer's flagship:\n------------------\n";
+        msg += "Local position:" + Strings::num_to_string(Game::getPlayerFlagship().getBox().get_center().x) + ", " +
+               Strings::num_to_string(Game::getPlayerFlagship().getBox().get_center().y) + "\n";
+        msg += "Angle:" + Strings::num_to_string(Game::getPlayerFlagship().getAngle()) + " degrees\n";
+        msg += "Angular velocity:" + Strings::num_to_string(Game::getPlayerFlagship().getAngularVelocity()) +
+               " degrees / second\n";
+        msg += "Angular force:" + Strings::num_to_string(Game::getPlayerFlagship().getLastAngularForce()) +
+               " newtons\n";
     }
 
     if (msg.length() > 0) {

@@ -1,0 +1,11 @@
+<tile>
+	name:sea
+	sprite:sea
+	solid:false
+</tile>
+
+<tile>
+	name:land
+	sprite:land
+	solid:true
+</tile>
