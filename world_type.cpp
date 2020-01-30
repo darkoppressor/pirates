@@ -13,5 +13,6 @@ WorldType::WorldType () {
     width = 0;
     height = 0;
     seaLevel = 0;
-    grassLevel = 0;
+    shallowsLevel = 0;
+    sandLevel = 0;
 }

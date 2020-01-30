@@ -87,20 +87,22 @@ void Game_Manager::handle_input_states () {
         if (!paused) {
             // Steer the ship via directional keys
             if (Game::moveInputState("left")) {
-                Game::playerFlagshipSteer("left");
+                Game::getPlayerFlagship().setSteerDirection("left");
             }
 
             if (Game::moveInputState("right")) {
-                Game::playerFlagshipSteer("right");
+                Game::getPlayerFlagship().setSteerDirection("right");
             }
 
             if (Game::moveInputState("left") && Game::moveInputState("right")) {
-                Game::playerFlagshipSteer("left");
+                Game::getPlayerFlagship().setSteerDirection("left");
             }
 
             if (!Game::moveInputState("left") && !Game::moveInputState("right")) {
-                Game::playerFlagshipSteer("none");
+                Game::getPlayerFlagship().setSteerDirection("none");
             }
+
+            Game::getPlayerFlagship().setGoing(Object_Manager::game_command_state("go"));
         }
     }
 }

@@ -58,11 +58,11 @@ class Game {
         // global pixels
         static double getPixelHeight();
         static std::uint8_t getSeaLevel();
-        static std::uint8_t getGrassLevel();
+        static std::uint8_t getShallowsLevel();
+        static std::uint8_t getSandLevel();
         static const std::vector<std::vector<Tile>>& getTiles();
         static const Player& getPlayer();
         static Ship& getPlayerFlagship();
-        static void playerFlagshipSteer(const std::string& direction);
         static bool moveInputState(const std::string& direction);
 };
 

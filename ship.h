@@ -27,7 +27,8 @@ class Ship {
         double angularForce;
         bool steerDirectionLeft;
         bool steering;
-        bool braking;
+        // QQQ temporary
+        bool going;
         Sprite sprite;
 
         // Derived from type:
@@ -45,6 +46,7 @@ class Ship {
 
         void stop();
         void steer();
+        void go();
         // Returns true if a collision was detected
         bool tileCollision(const Coords<double>& oldPosition, double oldAngle);
 
@@ -74,6 +76,7 @@ class Ship {
         double getLastAngularForce() const;
 
         void setSteerDirection(const std::string& direction);
+        void setGoing(bool going);
         void accelerate();
         void movement();
 

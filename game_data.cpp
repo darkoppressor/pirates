@@ -76,8 +76,10 @@ void Game_Data::loadWorldTypes (File_IO_Load* load) {
             }
         } else if (Data_Reader::check_prefix(line, "seaLevel:")) {
             worldTypes.back().seaLevel = Strings::string_to_unsigned_long(line);
-        } else if (Data_Reader::check_prefix(line, "grassLevel:")) {
-            worldTypes.back().grassLevel = Strings::string_to_unsigned_long(line);
+        } else if (Data_Reader::check_prefix(line, "shallowsLevel:")) {
+            worldTypes.back().shallowsLevel = Strings::string_to_unsigned_long(line);
+        } else if (Data_Reader::check_prefix(line, "sandLevel:")) {
+            worldTypes.back().sandLevel = Strings::string_to_unsigned_long(line);
         } else if (Data_Reader::check_prefix(line, "spawnPosition:")) {
             vector<string> spawnPosition;
             boost::algorithm::split(spawnPosition, line, boost::algorithm::is_any_of(","));

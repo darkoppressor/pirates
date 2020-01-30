@@ -164,8 +164,12 @@ uint8_t Game::getSeaLevel () {
     return worldType ? worldType->seaLevel : 0;
 }
 
-uint8_t Game::getGrassLevel () {
-    return worldType ? worldType->grassLevel : 0;
+uint8_t Game::getShallowsLevel () {
+    return worldType ? worldType->shallowsLevel : 0;
+}
+
+uint8_t Game::getSandLevel () {
+    return worldType ? worldType->sandLevel : 0;
 }
 
 const vector<vector<Tile>>& Game::getTiles () {
@@ -184,10 +188,6 @@ Ship& Game::getPlayerFlagship () {
 
         Engine::quit();
     }
-}
-
-void Game::playerFlagshipSteer (const string& direction) {
-    getPlayerFlagship().setSteerDirection(direction);
 }
 
 bool Game::moveInputState (const string& direction) {
