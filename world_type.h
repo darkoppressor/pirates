@@ -20,7 +20,8 @@ class WorldType {
         // chunks
         std::int32_t height;
         std::uint8_t seaLevel;
-        std::uint8_t grassLevel;
+        std::uint8_t shallowsLevel;
+        std::uint8_t sandLevel;
         // global tile coordinates
         Coords<std::int32_t> spawnPosition;
 

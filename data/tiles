@@ -5,6 +5,12 @@
 </tile>
 
 <tile>
+	name:shallows
+	sprite:shallows
+	solid:false
+</tile>
+
+<tile>
 	name:sand
 	sprite:sand
 	solid:true

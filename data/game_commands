@@ -9,6 +9,16 @@
 </game_command>
 
 <game_command>
+	name:go
+	title:Go
+	description:Make go
+	developer:false
+	key:Up
+	controller_button:
+	controller_axis:
+</game_command>
+
+<game_command>
 	name:left
 	title:Left
 	description:Move left

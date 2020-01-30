@@ -59,6 +59,12 @@ void Ship::steer () {
     }
 }
 
+void Ship::go () {
+    if (going) {
+        force += Vector(34019.0, angle);
+    }
+}
+
 bool Ship::tileCollision (const Coords<double>& oldLocalPosition, double oldAngle) {
     const vector<vector<Tile>>& tiles = Game::getTiles();
     Coords<int32_t> tilePosition = getTilePosition();
@@ -95,7 +101,7 @@ Ship::Ship (const string& type, const Coords<int32_t>& localTilePosition) {
     angularForce = 0.0;
     steerDirectionLeft = false;
     steering = false;
-    braking = false;
+    going = false;
 
     sprite.set_name("ship_" + getType()->sprite);
 
@@ -171,8 +177,13 @@ void Ship::setSteerDirection (const string& direction) {
     }
 }
 
+void Ship::setGoing (bool going) {
+    this->going = going;
+}
+
 void Ship::accelerate () {
     steer();
+    go();
 
     Vector acceleration = force / getMass();
 

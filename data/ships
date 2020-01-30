@@ -3,7 +3,7 @@
 	displayName:Zero
 	sprite:0
 	mass:272155.0
-	steerForce:272155.0
-	maximumAngularSpeed:22.0
+	steerForce:2177240.0
+	maximumAngularSpeed:90.0
 	maximumSpeed:256.0
 </ship>

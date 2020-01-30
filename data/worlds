@@ -4,6 +4,7 @@
 	directory:caribbean
 	dimensions:44x27
 	seaLevel:128
-	grassLevel:132
-	spawnPosition:27300,30348
+	shallowsLevel:129
+	sandLevel:130
+	spawnPosition:27214,30116
 </world>

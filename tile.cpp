@@ -25,7 +25,9 @@ void Tile::setup (uint8_t elevation) {
 
     if (elevation <= Game::getSeaLevel()) {
         type = "sea";
-    } else if (elevation <= Game::getGrassLevel()) {
+    } else if (elevation <= Game::getShallowsLevel()) {
+        type = "shallows";
+    } else if (elevation <= Game::getSandLevel()) {
         type = "sand";
     } else {
         type = "grass";
