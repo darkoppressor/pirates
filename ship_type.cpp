@@ -10,8 +10,6 @@ ShipType::ShipType () {
     name = "";
     displayName = "";
     sprite = "";
-    width = 0.0;
-    height = 0.0;
     mass = 0.0;
     steerForce = 0.0;
     maximumAngularSpeed = 0.0;

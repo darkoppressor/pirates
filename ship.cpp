@@ -36,18 +36,10 @@ double Ship::getMaximumSpeed () const {
 }
 
 Collision_Rect<double> Ship::getCollisionBox () const {
-    ShipType* type = getType();
-
-    return Collision_Rect<double>(position.x + Game_Constants::SHIP_COLLISION_REDUCTION,
-                                  position.y + Game_Constants::SHIP_COLLISION_REDUCTION,
-                                  type->width - Game_Constants::SHIP_COLLISION_REDUCTION* 2.0,
-                                  type->height - Game_Constants::SHIP_COLLISION_REDUCTION* 2.0);
-}
-
-Coords<int32_t> Ship::getTilePosition () const {
-    Collision_Rect<double> box = getBox();
-
-    return Coords<int32_t>(box.center_x() / Game_Constants::TILE_SIZE, box.center_y() / Game_Constants::TILE_SIZE);
+    return Collision_Rect<double>(localPosition.x + Game_Constants::SHIP_COLLISION_REDUCTION,
+                                  localPosition.y + Game_Constants::SHIP_COLLISION_REDUCTION,
+                                  sprite.get_width() - Game_Constants::SHIP_COLLISION_REDUCTION* 2.0,
+                                  sprite.get_height() - Game_Constants::SHIP_COLLISION_REDUCTION* 2.0);
 }
 
 void Ship::stop () {
@@ -67,7 +59,7 @@ void Ship::steer () {
     }
 }
 
-bool Ship::tileCollision (const Coords<double>& oldPosition, double oldAngle) {
+bool Ship::tileCollision (const Coords<double>& oldLocalPosition, double oldAngle) {
     const vector<vector<Tile>>& tiles = Game::getTiles();
     Coords<int32_t> tilePosition = getTilePosition();
     Collision_Rect<double> collisionBox = getCollisionBox();
@@ -80,7 +72,7 @@ bool Ship::tileCollision (const Coords<double>& oldPosition, double oldAngle) {
 
                 if (Collision::check_rect_rotated(collisionBox, tileBox, angle, 0.0)) {
                     if (tiles[x][y].isSolid()) {
-                        position = oldPosition;
+                        localPosition = oldLocalPosition;
                         angle = oldAngle;
 
                         stop();
@@ -95,9 +87,9 @@ bool Ship::tileCollision (const Coords<double>& oldPosition, double oldAngle) {
     return false;
 }
 
-Ship::Ship (const string& type, const Coords<double>& position) {
+Ship::Ship (const string& type, const Coords<int32_t>& localTilePosition) {
     this->type = type;
-    this->position = position;
+
     angle = 0.0;
     angularVelocity = 0.0;
     angularForce = 0.0;
@@ -107,13 +99,50 @@ Ship::Ship (const string& type, const Coords<double>& position) {
 
     sprite.set_name("ship_" + getType()->sprite);
 
+    localPosition = Coords<double>(
+        localTilePosition.x * Game_Constants::TILE_SIZE + Game_Constants::TILE_SIZE / 2.0 - sprite.get_width() / 2.0,
+        localTilePosition.y * Game_Constants::TILE_SIZE + Game_Constants::TILE_SIZE / 2.0 - sprite.get_height() / 2.0);
+
     lastAngularForce = 0.0;
 }
 
 Collision_Rect<double> Ship::getBox () const {
     ShipType* type = getType();
 
-    return Collision_Rect<double>(position.x, position.y, type->width, type->height);
+    return Collision_Rect<double>(localPosition.x, localPosition.y, sprite.get_width(), sprite.get_height());
+}
+
+Coords<int32_t> Ship::getTilePosition () const {
+    Collision_Rect<double> box = getBox();
+
+    return Coords<int32_t>(box.center_x() / Game_Constants::TILE_SIZE, box.center_y() / Game_Constants::TILE_SIZE);
+}
+
+Coords<int32_t> Ship::getChunkPosition () const {
+    Collision_Rect<double> box = getBox();
+
+    return Coords<int32_t>(box.center_x() / Game_Constants::TILE_SIZE / Game_Constants::CHUNK_SIZE,
+                           box.center_y() / Game_Constants::TILE_SIZE / Game_Constants::CHUNK_SIZE);
+}
+
+Coords<int32_t> Ship::getGlobalTilePosition () const {
+    Coords<int32_t> globalChunkPosition = getGlobalChunkPosition();
+    Coords<int32_t> tilePosition = getTilePosition();
+
+    return Coords<int32_t>(globalChunkPosition.x * Game_Constants::CHUNK_SIZE +
+                           (tilePosition.x - Game_Constants::CHUNK_SIZE),
+                           globalChunkPosition.y * Game_Constants::CHUNK_SIZE +
+                           (tilePosition.y - Game_Constants::CHUNK_SIZE));
+}
+
+Coords<int32_t> Ship::getGlobalChunkPosition () const {
+    // The global chunk that corresponds to local chunk 1, 1
+    Coords<int32_t> playerGlobalChunkPosition = Game::getPlayer().getGlobalChunkPosition();
+    // local chunk coordinates
+    Coords<int32_t> chunkPosition = getChunkPosition();
+
+    return Coords<int32_t>(playerGlobalChunkPosition.x + (chunkPosition.x - 1),
+                           playerGlobalChunkPosition.y + (chunkPosition.y - 1));
 }
 
 double Ship::getAngle () const {
@@ -178,38 +207,38 @@ void Ship::movement () {
     double angularMovement = angularVelocity / Engine::UPDATE_RATE;
 
     for (int32_t i = 0; i < Game_Constants::SHIP_COLLISION_STEPS; i++) {
-        Coords<double> oldPosition = position;
+        Coords<double> oldLocalPosition = localPosition;
         double oldAngle = angle;
 
-        position.x += movementX / Game_Constants::SHIP_COLLISION_STEPS;
-        position.y += movementY / Game_Constants::SHIP_COLLISION_STEPS;
+        localPosition.x += movementX / Game_Constants::SHIP_COLLISION_STEPS;
+        localPosition.y += movementY / Game_Constants::SHIP_COLLISION_STEPS;
         angle += angularMovement / Game_Constants::SHIP_COLLISION_STEPS;
         Math::clamp_angle(angle);
 
-        if (tileCollision(oldPosition, oldAngle)) {
+        if (tileCollision(oldLocalPosition, oldAngle)) {
             break;
         }
     }
 
-    if (position.x < 0.0) {
-        position.x = 0.0;
+    if (localPosition.x < 0.0) {
+        localPosition.x = 0.0;
         stop();
     }
 
-    if (position.y < 0.0) {
-        position.y = 0.0;
+    if (localPosition.y < 0.0) {
+        localPosition.y = 0.0;
         stop();
     }
 
     Collision_Rect<double> collisionBox = getCollisionBox();
 
     if (collisionBox.x + collisionBox.w >= Game::getPixelWidth()) {
-        position.x = Game::getPixelWidth() - collisionBox.w;
+        localPosition.x = Game::getPixelWidth() - collisionBox.w;
         stop();
     }
 
     if (collisionBox.y + collisionBox.h >= Game::getPixelHeight()) {
-        position.y = Game::getPixelHeight() - collisionBox.h;
+        localPosition.y = Game::getPixelHeight() - collisionBox.h;
         stop();
     }
 }

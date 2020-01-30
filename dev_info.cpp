@@ -25,13 +25,23 @@ void Engine::render_dev_info () {
                Strings::num_to_string(Game_Manager::camera.h / Game_Manager::camera_zoom) + "\n";
         msg += "Camera Zoom: " + Strings::num_to_string(Game_Manager::camera_zoom) + "\n";
 
-        msg += "\nPlayer's flagship:\n------------------\n";
-        msg += "Local position:" + Strings::num_to_string(Game::getPlayerFlagship().getBox().get_center().x) + ", " +
-               Strings::num_to_string(Game::getPlayerFlagship().getBox().get_center().y) + "\n";
-        msg += "Angle:" + Strings::num_to_string(Game::getPlayerFlagship().getAngle()) + " degrees\n";
-        msg += "Angular velocity:" + Strings::num_to_string(Game::getPlayerFlagship().getAngularVelocity()) +
+        msg += "\nPlayer's flagship:\n--------------------------------------------------\n";
+        msg += " Global position:\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getGlobalTilePosition().x) + " tiles, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getGlobalTilePosition().y) + " tiles\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getGlobalChunkPosition().x) + " chunks, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getGlobalChunkPosition().y) + " chunks\n";
+        msg += " Local position:\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getBox().get_center().x) + " meters, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getBox().get_center().y) + " meters\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getTilePosition().x) + " tiles, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getTilePosition().y) + " tiles\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getChunkPosition().x) + " chunks, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getChunkPosition().y) + " chunks\n";
+        msg += "\n Angle:" + Strings::num_to_string(Game::getPlayerFlagship().getAngle()) + " degrees\n";
+        msg += " Angular velocity:" + Strings::num_to_string(Game::getPlayerFlagship().getAngularVelocity()) +
                " degrees / second\n";
-        msg += "Angular force:" + Strings::num_to_string(Game::getPlayerFlagship().getLastAngularForce()) +
+        msg += " Angular force:" + Strings::num_to_string(Game::getPlayerFlagship().getLastAngularForce()) +
                " newtons\n";
     }
 

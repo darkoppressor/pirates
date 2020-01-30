@@ -2,9 +2,8 @@
 	name:0
 	displayName:Zero
 	sprite:0
-	dimensions:32.0x32.0
 	mass:272155.0
 	steerForce:272155.0
-	maximumAngularSpeed:45.0
+	maximumAngularSpeed:22.0
 	maximumSpeed:256.0
 </ship>

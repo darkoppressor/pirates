@@ -12,4 +12,6 @@ WorldType::WorldType () {
     directory = "";
     width = 0;
     height = 0;
+    seaLevel = 0;
+    grassLevel = 0;
 }

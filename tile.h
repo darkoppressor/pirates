@@ -16,6 +16,7 @@
 
 class Tile {
     private:
+        std::uint8_t elevation;
         std::string type;
         Sprite sprite;
 
@@ -24,7 +25,8 @@ class Tile {
 
     public:
         Tile ();
-        Tile (const std::string& type);
+
+        void setup(std::uint8_t elevation);
 
         // Derived from type:
         bool isSolid() const;

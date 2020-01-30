@@ -1,4 +1,1 @@
-I think the SRTM data should lead to a full grayscale image instead of two colors
-Then a global sea level var can be made
-
 Need a natural braking effect from water drag (hopefully can be constant); should affect velocity and angular velocity

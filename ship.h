@@ -19,7 +19,7 @@ class Ship {
     private:
         std::string type;
         // local pixels
-        Coords<double> position;
+        Coords<double> localPosition;
         double angle;
         Vector velocity;
         Vector force;
@@ -39,8 +39,6 @@ class Ship {
 
         // local pixels
         Collision_Rect<double> getCollisionBox() const;
-        // local tile coordinates
-        Coords<std::int32_t> getTilePosition() const;
 
         // For displaying dev info:
         double lastAngularForce;
@@ -51,10 +49,24 @@ class Ship {
         bool tileCollision(const Coords<double>& oldPosition, double oldAngle);
 
     public:
-        Ship (const std::string& type, const Coords<double>& position);
+        /**
+         * [Ship]
+         * @param type
+         * @param spawnPosition [the spawn position as local tile coordinates]
+         */
+        Ship (const std::string& type, const Coords<std::int32_t>& spawnPosition);
 
         // local pixels
         Collision_Rect<double> getBox() const;
+        // local tile coordinates
+        Coords<std::int32_t> getTilePosition() const;
+        // local chunk coordinates
+        Coords<std::int32_t> getChunkPosition() const;
+
+        // global tile coordinates
+        Coords<std::int32_t> getGlobalTilePosition() const;
+        // global chunk coordinates
+        Coords<std::int32_t> getGlobalChunkPosition() const;
 
         // For displaying dev info:
         double getAngle() const;

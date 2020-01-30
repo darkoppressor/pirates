@@ -5,7 +5,13 @@
 </tile>
 
 <tile>
-	name:land
-	sprite:land
+	name:sand
+	sprite:sand
+	solid:true
+</tile>
+
+<tile>
+	name:grass
+	sprite:grass
 	solid:true
 </tile>
