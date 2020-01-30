@@ -3,11 +3,15 @@
 /* See the file docs/LICENSE.txt for the full license text. */
 
 #include "game_data.h"
+#include "game_constants.h"
 
 #include <data_manager.h>
 #include <data_reader.h>
 #include <engine_strings.h>
 #include <log.h>
+#include <pixels.h>
+#include <color.h>
+#include <render.h>
 
 #include <boost/algorithm/string.hpp>
 
@@ -16,8 +20,9 @@ using namespace std;
 vector<WorldType> Game_Data::worldTypes;
 vector<TileType> Game_Data::tileTypes;
 vector<ShipType> Game_Data::shipTypes;
+unordered_set<Coords<int32_t>, CoordsHasher> Game_Data::emptyChunks;
 
-///Don't forget to increment this for each progress item in load_data_game() below
+// Don't forget to increment this for each progress item in load_data_game() below
 const int Game_Data::game_data_load_item_count = 3;
 void Game_Data::load_data_game (Progress_Bar& bar) {
     bar.progress("Loading worlds");
@@ -44,6 +49,7 @@ void Game_Data::unload_data_game () {
     worldTypes.clear();
     tileTypes.clear();
     shipTypes.clear();
+    emptyChunks.clear();
 }
 
 void Game_Data::loadWorldTypes (File_IO_Load* load) {
@@ -68,6 +74,10 @@ void Game_Data::loadWorldTypes (File_IO_Load* load) {
                 worldTypes.back().width = Strings::string_to_long(dimensions[0]);
                 worldTypes.back().height = Strings::string_to_long(dimensions[1]);
             }
+        } else if (Data_Reader::check_prefix(line, "seaLevel:")) {
+            worldTypes.back().seaLevel = Strings::string_to_unsigned_long(line);
+        } else if (Data_Reader::check_prefix(line, "grassLevel:")) {
+            worldTypes.back().grassLevel = Strings::string_to_unsigned_long(line);
         } else if (Data_Reader::check_prefix(line, "spawnPosition:")) {
             vector<string> spawnPosition;
             boost::algorithm::split(spawnPosition, line, boost::algorithm::is_any_of(","));
@@ -148,14 +158,6 @@ void Game_Data::loadShipTypes (File_IO_Load* load) {
             shipTypes.back().displayName = line;
         } else if (Data_Reader::check_prefix(line, "sprite:")) {
             shipTypes.back().sprite = line;
-        } else if (Data_Reader::check_prefix(line, "dimensions:")) {
-            vector<string> dimensions;
-            boost::algorithm::split(dimensions, line, boost::algorithm::is_any_of("x"));
-
-            if (dimensions.size() >= 2) {
-                shipTypes.back().width = Strings::string_to_double(dimensions[0]);
-                shipTypes.back().height = Strings::string_to_double(dimensions[1]);
-            }
         } else if (Data_Reader::check_prefix(line, "mass:")) {
             shipTypes.back().mass = Strings::string_to_double(line);
         } else if (Data_Reader::check_prefix(line, "steerForce:")) {
@@ -184,4 +186,74 @@ ShipType* Game_Data::getShipType (string name) {
     }
 
     return ptr_object;
+}
+
+void Game_Data::loadEmptyChunks (const string& worldDirectory) {
+    emptyChunks.clear();
+
+    File_IO_Load load(VFS::get_rwops("world_data/" + worldDirectory + "/emptyChunkCoords"));
+
+    if (load.is_opened()) {
+        while (!load.eof()) {
+            string line = "";
+
+            load.getline(&line);
+            boost::algorithm::trim(line);
+
+            vector<string> chunkCoords;
+            boost::algorithm::split(chunkCoords, line, boost::algorithm::is_any_of(","));
+
+            if (chunkCoords.size() >= 2) {
+                emptyChunks.insert(Coords<int32_t>(Strings::string_to_long(chunkCoords[0]),
+                                                   Strings::string_to_long(chunkCoords[1])));
+            }
+        }
+    }
+}
+
+void Game_Data::unloadEmptyChunks () {
+    emptyChunks.clear();
+}
+
+void Game_Data::loadChunk (const string& worldDirectory, const Coords<int32_t>& globalChunk,
+                           vector<vector<Tile>>& tiles, const Coords<int32_t>& localChunk) {
+    Log::add_log("Loading global chunk (" + Strings::num_to_string(globalChunk.x) + ", " +
+                 Strings::num_to_string(
+                     globalChunk.y) + ") from directory '" + worldDirectory + "' into local chunk (" +
+                 Strings::num_to_string(localChunk.x) + ", " + Strings::num_to_string(localChunk.y) + ")");
+
+    bool chunkIsEmpty = emptyChunks.count(globalChunk);
+    SDL_Surface* chunkImage = 0;
+
+    if (!chunkIsEmpty) {
+        chunkImage = Render::load_image("world_data/" + worldDirectory + "/" + Strings::num_to_string(
+                                            globalChunk.x) + "_" + Strings::num_to_string(globalChunk.y) + ".png");
+
+        if (chunkImage) {
+            if (SDL_MUSTLOCK(chunkImage)) {
+                SDL_LockSurface(chunkImage);
+            }
+        }
+    }
+
+    for (int32_t x = localChunk.x * Game_Constants::CHUNK_SIZE, imageX = 0;
+         x < localChunk.x * Game_Constants::CHUNK_SIZE + Game_Constants::CHUNK_SIZE; x++, imageX++) {
+        for (int32_t y = localChunk.y * Game_Constants::CHUNK_SIZE, imageY = 0;
+             y < localChunk.y * Game_Constants::CHUNK_SIZE + Game_Constants::CHUNK_SIZE; y++, imageY++) {
+            if (chunkIsEmpty || !chunkImage) {
+                tiles[x][y].setup(0);
+            } else {
+                Color color = Pixels::surface_get_pixel(chunkImage, imageX, imageY);
+                tiles[x][y].setup(color.get_red());
+            }
+        }
+    }
+
+    if (chunkImage) {
+        if (SDL_MUSTLOCK(chunkImage)) {
+            SDL_UnlockSurface(chunkImage);
+        }
+
+        SDL_FreeSurface(chunkImage);
+    }
 }

@@ -2,6 +2,8 @@
 	name:caribbean
 	displayName:Caribbean
 	directory:caribbean
-	dimensions:3x3
-	spawnPosition:1801,1801
+	dimensions:44x27
+	seaLevel:128
+	grassLevel:132
+	spawnPosition:27300,30348
 </world>

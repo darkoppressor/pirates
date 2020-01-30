@@ -58,6 +58,13 @@
 </game_constant>
 
 <game_constant>
+	// chunks
+	name:local_world_size
+	value:3
+	type:int32_t
+</game_constant>
+
+<game_constant>
 	// pixels
 	name:ship_collision_reduction
 	value:1

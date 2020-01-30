@@ -12,10 +12,6 @@ class ShipType {
         std::string name;
         std::string displayName;
         std::string sprite;
-        // pixels
-        double width;
-        // pixels
-        double height;
         // kilograms
         double mass;
         // newtons

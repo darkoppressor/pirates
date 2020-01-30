@@ -14,7 +14,6 @@
 #include <engine_data.h>
 #include <engine.h>
 #include <log.h>
-#include <button_events.h>
 
 using namespace std;
 
@@ -42,16 +41,13 @@ Collision_Rect<int32_t> Game::getCameraTileBox () {
     return Collision_Rect<int32_t>(cameraTileX, cameraTileY, endTileX, endTileY);
 }
 
-const Player& Game::getPlayer () {
-    return player;
-}
-
 void Game::clear_world () {
     selectedWorldType = "";
     worldType = 0;
     tiles.clear();
     player.reset();
     ships.clear();
+    Game_Data::unloadEmptyChunks();
 }
 
 void Game::generate_world () {
@@ -60,20 +56,33 @@ void Game::generate_world () {
     // QQQ For now we will hardcode the world name
     selectedWorldType = "caribbean";
 
-    worldType = Game_Data::getWorldType(selectedWorldType);
-
     RNG rngSeeder;
     rng.seed(rngSeeder.random_range(0, numeric_limits<uint32_t>::max()));
 
-    tiles.resize(getTileWidth(), vector<Tile>(getTileHeight()));
+    worldType = Game_Data::getWorldType(selectedWorldType);
 
-    ships.push_back(Ship("0", Coords<double>(100.0, 100.0)));
+    Game_Data::loadEmptyChunks(worldType->directory);
 
-    if (ships.size() == 0) {
-        Log::add_error("No player flagship spawned");
+    player.setGlobalChunkPosition(worldType->spawnPosition);
 
-        Button_Events::handle_button_event("stop_game", 0);
+    tiles.resize(Game_Constants::LOCAL_WORLD_SIZE* Game_Constants::CHUNK_SIZE,
+                 vector<Tile>(Game_Constants::LOCAL_WORLD_SIZE* Game_Constants::CHUNK_SIZE));
+
+    for (int32_t x = 0, globalX = player.getGlobalChunkPosition().x - 1; x < Game_Constants::LOCAL_WORLD_SIZE;
+         x++, globalX++) {
+        for (int32_t y = 0, globalY = player.getGlobalChunkPosition().y - 1; y < Game_Constants::LOCAL_WORLD_SIZE;
+             y++, globalY++) {
+            Game_Data::loadChunk(worldType->directory, Coords<int32_t>(globalX, globalY), tiles, Coords<int32_t>(x, y));
+        }
     }
+
+    ships.push_back(Ship("0",
+                         Coords<int32_t>(Game_Constants::CHUNK_SIZE + worldType->spawnPosition.x -
+                                         player.getGlobalChunkPosition().x *
+                                         Game_Constants::CHUNK_SIZE,
+                                         Game_Constants::CHUNK_SIZE + worldType->spawnPosition.y -
+                                         player.getGlobalChunkPosition().y *
+                                         Game_Constants::CHUNK_SIZE)));
 }
 
 void Game::tick () {}
@@ -151,8 +160,20 @@ double Game::getPixelHeight () {
     return getTileHeight() * Game_Constants::TILE_SIZE;
 }
 
+uint8_t Game::getSeaLevel () {
+    return worldType ? worldType->seaLevel : 0;
+}
+
+uint8_t Game::getGrassLevel () {
+    return worldType ? worldType->grassLevel : 0;
+}
+
 const vector<vector<Tile>>& Game::getTiles () {
     return tiles;
+}
+
+const Player& Game::getPlayer () {
+    return player;
 }
 
 Ship& Game::getPlayerFlagship () {

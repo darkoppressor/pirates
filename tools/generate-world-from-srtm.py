@@ -30,7 +30,6 @@ SRTM_MAX_Y_INTEGER = 59
 SRTM_MIN_Y_INTEGER = -1
 SRTM_REQUIRED_Y_DIGITS = 2
 SRTM_SAMPLES = 1201
-SRTM_LAND_THRESHOLD = 1
 
 def getMapTileValue (valueString):
     return [valueString[0], valueString[1:]]
@@ -100,16 +99,12 @@ def processMapTile (mapTileX, mapTileY, chunkCoords, emptyChunks):
                     pixels.append([])
 
                     for y in range(elevations.shape[1]):
-                        if elevations[x, y] < SRTM_LAND_THRESHOLD:
-                            pixels[x].append(0)
-                            pixels[x].append(0)
-                            pixels[x].append(0)
-                            pixels[x].append(255)
-                        else:
-                            pixels[x].append(255)
-                            pixels[x].append(255)
-                            pixels[x].append(255)
-                            pixels[x].append(255)
+                        value = int((int(elevations[x, y]) + 32768) / 256)
+
+                        pixels[x].append(value)
+                        pixels[x].append(value)
+                        pixels[x].append(value)
+                        pixels[x].append(255)
 
                 f = open('data/' + str(chunkCoords[0]) + '_' + str(chunkCoords[1]) + '.png', 'wb')
                 w = png.Writer(SRTM_SAMPLES, SRTM_SAMPLES, greyscale = False, alpha = True, bitdepth = 8)
