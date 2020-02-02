@@ -53,7 +53,7 @@
 <game_constant>
 	// pixels
 	name:tile_size
-	value:16
+	value:8
 	type:double
 </game_constant>
 
@@ -61,6 +61,12 @@
 	// chunks
 	name:local_world_size
 	value:3
+	type:int32_t
+</game_constant>
+
+<game_constant>
+	name:chunk_cache_range
+	value:2
 	type:int32_t
 </game_constant>
 
@@ -74,12 +80,6 @@
 	name:maximum_chunks_in_pool
 	value:36
 	type:uint32_t
-</game_constant>
-
-<game_constant>
-	name:chunk_cache_range
-	value:2
-	type:int32_t
 </game_constant>
 
 <game_constant>

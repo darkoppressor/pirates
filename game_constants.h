@@ -14,9 +14,9 @@ class Game_Constants {
     static std::int32_t CHUNK_SIZE;
     static double TILE_SIZE;
     static std::int32_t LOCAL_WORLD_SIZE;
+    static std::int32_t CHUNK_CACHE_RANGE;
     static std::uint32_t MAXIMUM_CHUNKS_IN_CACHE;
     static std::uint32_t MAXIMUM_CHUNKS_IN_POOL;
-    static std::int32_t CHUNK_CACHE_RANGE;
     static double SHIP_COLLISION_REDUCTION;
     static std::int32_t SHIP_COLLISION_STEPS;
     /// END SCRIPT-GENERATED CONSTANT DECLARATIONS
