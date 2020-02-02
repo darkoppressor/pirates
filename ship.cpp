@@ -61,23 +61,23 @@ void Ship::steer () {
 
 void Ship::go () {
     if (going) {
-        force += Vector(34019.0, angle);
+        force += Vector(68038.0, angle);
     }
 }
 
 bool Ship::tileCollision (const Coords<double>& oldLocalPosition, double oldAngle) {
-    const vector<vector<Tile>>& tiles = Game::getTiles();
     Coords<int32_t> tilePosition = getTilePosition();
     Collision_Rect<double> collisionBox = getCollisionBox();
     int32_t tileCheckPadding = max(1, (int32_t) ((collisionBox.w + collisionBox.h) / 2.0 / Game_Constants::TILE_SIZE));
 
     for (int32_t x = tilePosition.x - tileCheckPadding; x < tilePosition.x + tileCheckPadding + 1; x++) {
         for (int32_t y = tilePosition.y - tileCheckPadding; y < tilePosition.y + tileCheckPadding + 1; y++) {
-            if (x >= 0 && y >= 0 && x < Game::getTileWidth() && y < Game::getTileHeight()) {
-                Collision_Rect<double> tileBox = Tile::getBox(Coords<int32_t>(x, y));
+            if (x >= 0 && y >= 0 && x < Game::getLocalTileWidth() && y < Game::getLocalTileHeight()) {
+                Coords<int32_t> tileCoords(x, y);
+                Collision_Rect<double> tileBox = Tile::getBox(tileCoords);
 
                 if (Collision::check_rect_rotated(collisionBox, tileBox, angle, 0.0)) {
-                    if (tiles[x][y].isSolid()) {
+                    if (Game::getTile(tileCoords).isSolid()) {
                         localPosition = oldLocalPosition;
                         angle = oldAngle;
 
@@ -143,12 +143,12 @@ Coords<int32_t> Ship::getGlobalTilePosition () const {
 
 Coords<int32_t> Ship::getGlobalChunkPosition () const {
     // The global chunk that corresponds to local chunk 1, 1
-    Coords<int32_t> playerGlobalChunkPosition = Game::getPlayer().getGlobalChunkPosition();
+    Coords<int32_t> worldGlobalChunkPosition = Game::getGlobalChunkPosition();
     // local chunk coordinates
     Coords<int32_t> chunkPosition = getChunkPosition();
 
-    return Coords<int32_t>(playerGlobalChunkPosition.x + (chunkPosition.x - 1),
-                           playerGlobalChunkPosition.y + (chunkPosition.y - 1));
+    return Coords<int32_t>(worldGlobalChunkPosition.x + (chunkPosition.x - 1),
+                           worldGlobalChunkPosition.y + (chunkPosition.y - 1));
 }
 
 double Ship::getAngle () const {
@@ -161,6 +161,14 @@ double Ship::getAngularVelocity () const {
 
 double Ship::getLastAngularForce () const {
     return lastAngularForce;
+}
+
+Vector Ship::getVelocity () const {
+    return velocity;
+}
+
+Vector Ship::getLastForce () const {
+    return lastForce;
 }
 
 void Ship::setSteerDirection (const string& direction) {
@@ -195,6 +203,7 @@ void Ship::accelerate () {
         velocity.magnitude = -getMaximumSpeed();
     }
 
+    lastForce = force;
     force *= 0.0;
 
     double angularAcceleration = angularForce / getMass();
@@ -211,7 +220,7 @@ void Ship::accelerate () {
     angularForce = 0.0;
 }
 
-void Ship::movement () {
+void Ship::movement (bool isPlayer) {
     Vector_Components vc = velocity.get_components();
     double movementX = vc.a / Engine::UPDATE_RATE;
     double movementY = vc.b / Engine::UPDATE_RATE;
@@ -231,26 +240,53 @@ void Ship::movement () {
         }
     }
 
-    if (localPosition.x < 0.0) {
-        localPosition.x = 0.0;
-        stop();
-    }
-
-    if (localPosition.y < 0.0) {
-        localPosition.y = 0.0;
-        stop();
-    }
-
     Collision_Rect<double> collisionBox = getCollisionBox();
 
-    if (collisionBox.x + collisionBox.w >= Game::getPixelWidth()) {
-        localPosition.x = Game::getPixelWidth() - collisionBox.w;
-        stop();
+    if (isPlayer) {
+        // QQQ handle player ship going outside of the global world
+
+        Coords<int32_t> chunkPosition = getChunkPosition();
+        Coords<int32_t> globalChunkMovement(chunkPosition.x - 1, chunkPosition.y - 1);
+
+        if (globalChunkMovement != Coords<int32_t>(0, 0)) {
+            Game::updateGlobalChunkPosition(globalChunkMovement);
+        }
+    } else {
+        if (localPosition.x < 0.0) {
+            localPosition.x = 0.0;
+            stop();
+        }
+
+        if (localPosition.y < 0.0) {
+            localPosition.y = 0.0;
+            stop();
+        }
+
+        if (collisionBox.x + collisionBox.w >=
+            (Game_Constants::LOCAL_WORLD_SIZE - 1) * Game_Constants::CHUNK_SIZE* Game_Constants::TILE_SIZE) {
+            localPosition.x = Game::getLocalPixelWidth() - collisionBox.w;
+            stop();
+        }
+
+        if (collisionBox.y + collisionBox.h >=
+            (Game_Constants::LOCAL_WORLD_SIZE - 1) * Game_Constants::CHUNK_SIZE* Game_Constants::TILE_SIZE) {
+            localPosition.y = Game::getLocalPixelHeight() - collisionBox.h;
+            stop();
+        }
+    }
+}
+
+void Ship::chunkMove (const Coords<int32_t>& globalChunkMovement) {
+    if (globalChunkMovement.x == 1) {
+        localPosition.x -= Game_Constants::CHUNK_SIZE * Game_Constants::TILE_SIZE;
+    } else if (globalChunkMovement.x == -1) {
+        localPosition.x += Game_Constants::CHUNK_SIZE * Game_Constants::TILE_SIZE;
     }
 
-    if (collisionBox.y + collisionBox.h >= Game::getPixelHeight()) {
-        localPosition.y = Game::getPixelHeight() - collisionBox.h;
-        stop();
+    if (globalChunkMovement.y == 1) {
+        localPosition.y -= Game_Constants::CHUNK_SIZE * Game_Constants::TILE_SIZE;
+    } else if (globalChunkMovement.y == -1) {
+        localPosition.y += Game_Constants::CHUNK_SIZE * Game_Constants::TILE_SIZE;
     }
 }
 

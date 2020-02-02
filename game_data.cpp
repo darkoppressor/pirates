@@ -217,12 +217,9 @@ void Game_Data::unloadEmptyChunks () {
     emptyChunks.clear();
 }
 
-void Game_Data::loadChunk (const string& worldDirectory, const Coords<int32_t>& globalChunk,
-                           vector<vector<Tile>>& tiles, const Coords<int32_t>& localChunk) {
+void Game_Data::loadChunk (const string& worldDirectory, const Coords<int32_t>& globalChunk, Chunk* chunk) {
     Log::add_log("Loading global chunk (" + Strings::num_to_string(globalChunk.x) + ", " +
-                 Strings::num_to_string(
-                     globalChunk.y) + ") from directory '" + worldDirectory + "' into local chunk (" +
-                 Strings::num_to_string(localChunk.x) + ", " + Strings::num_to_string(localChunk.y) + ")");
+                 Strings::num_to_string(globalChunk.y) + ") from directory '" + worldDirectory + "'");
 
     bool chunkIsEmpty = emptyChunks.count(globalChunk);
     SDL_Surface* chunkImage = 0;
@@ -238,15 +235,17 @@ void Game_Data::loadChunk (const string& worldDirectory, const Coords<int32_t>& 
         }
     }
 
-    for (int32_t x = localChunk.x * Game_Constants::CHUNK_SIZE, imageX = 0;
-         x < localChunk.x * Game_Constants::CHUNK_SIZE + Game_Constants::CHUNK_SIZE; x++, imageX++) {
-        for (int32_t y = localChunk.y * Game_Constants::CHUNK_SIZE, imageY = 0;
-             y < localChunk.y * Game_Constants::CHUNK_SIZE + Game_Constants::CHUNK_SIZE; y++, imageY++) {
+    chunk->setGlobalChunkPosition(globalChunk);
+
+    for (int32_t x = 0; x < Game_Constants::CHUNK_SIZE; x++) {
+        for (int32_t y = 0; y < Game_Constants::CHUNK_SIZE; y++) {
+            Coords<int32_t> tileCoords(x, y);
+
             if (chunkIsEmpty || !chunkImage) {
-                tiles[x][y].setup(0);
+                chunk->getTile(tileCoords).setup(0);
             } else {
-                Color color = Pixels::surface_get_pixel(chunkImage, imageX, imageY);
-                tiles[x][y].setup(color.get_red());
+                Color color = Pixels::surface_get_pixel(chunkImage, x, y);
+                chunk->getTile(tileCoords).setup(color.get_red());
             }
         }
     }

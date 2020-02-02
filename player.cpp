@@ -8,19 +8,7 @@
 using namespace std;
 
 Player::Player () {
-    reset();
+    clear();
 }
 
-void Player::reset () {
-    globalChunkPosition.x = 0;
-    globalChunkPosition.y = 0;
-}
-
-const Coords<int32_t>& Player::getGlobalChunkPosition () const {
-    return globalChunkPosition;
-}
-
-void Player::setGlobalChunkPosition (const Coords<int32_t>& spawnPosition) {
-    globalChunkPosition = Coords<int32_t>(spawnPosition.x / Game_Constants::CHUNK_SIZE,
-                                          spawnPosition.y / Game_Constants::CHUNK_SIZE);
-}
+void Player::clear () {}
