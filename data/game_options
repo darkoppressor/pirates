@@ -1,4 +1,10 @@
 <game_option>
+	name:cl_chunk_cache_log
+	default:false
+	description:enable the chunk cache log
+</game_option>
+
+<game_option>
 	name:cl_effect_limit
 	default:8192
 	description:the maximum number of simultaneous effects

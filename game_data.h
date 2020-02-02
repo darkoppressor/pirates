@@ -8,7 +8,8 @@
 #include "world_type.h"
 #include "tile_type.h"
 #include "ship_type.h"
-#include "tile.h"
+#include "chunk.h"
+#include "coords_hasher.h"
 
 #include <progress_bar.h>
 #include <file_io.h>
@@ -18,14 +19,7 @@
 #include <string>
 #include <unordered_set>
 #include <cstdint>
-#include <functional>
-
-class CoordsHasher {
-    public:
-        size_t operator() (const Coords<std::int32_t>& coords) const {
-            return (std::hash<std::int32_t>() (coords.x) ^ (std::hash<std::int32_t>() (coords.y) << 1)) >> 1;
-        }
-};
+#include <list>
 
 class Game_Data {
     private:
@@ -53,14 +47,12 @@ class Game_Data {
         static void loadEmptyChunks(const std::string& worldDirectory);
         static void unloadEmptyChunks();
         /**
-         * [loadChunk load data from a chunk file into the tiles of a given local chunk]
-         * @param worldDirectory      [the world directory for the world to load chunks from]
-         * @param globalChunk [global chunk coordinates of the data file to load]
-         * @param tiles               [the tiles to load the chunk data into]
-         * @param localChunk  [the local chunk coordinates of the chunk of tiles to load the chunk data into]
+         * [loadChunk]
+         * @param worldDirectory [the world directory for the world to load the chunk from]
+         * @param globalChunk    [global chunk coordinates of the data file to load]
+         * @param chunk
          */
-        static void loadChunk(const std::string& worldDirectory, const Coords<std::int32_t>& globalChunk,
-                              std::vector<std::vector<Tile>>& tiles, const Coords<std::int32_t>& localChunk);
+        static void loadChunk(const std::string& worldDirectory, const Coords<std::int32_t>& globalChunk, Chunk* chunk);
 };
 
 #endif

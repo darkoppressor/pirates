@@ -94,16 +94,16 @@ void Game_Manager::set_camera () {
         camera.x = 0.0;
     }
 
-    if (camera.x + camera.w > Game::getPixelWidth() * camera_zoom) {
-        camera.x = Game::getPixelWidth() * camera_zoom - camera.w;
+    if (camera.x + camera.w > Game::getLocalPixelWidth() * camera_zoom) {
+        camera.x = Game::getLocalPixelWidth() * camera_zoom - camera.w;
     }
 
     if (camera.y < 0.0) {
         camera.y = 0.0;
     }
 
-    if (camera.y + camera.h > Game::getPixelHeight() * camera_zoom) {
-        camera.y = Game::getPixelHeight() * camera_zoom - camera.h;
+    if (camera.y + camera.h > Game::getLocalPixelHeight() * camera_zoom) {
+        camera.y = Game::getLocalPixelHeight() * camera_zoom - camera.h;
     }
 
     Screen_Shake::update_camera_after(camera);

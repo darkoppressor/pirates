@@ -1,1 +1,4 @@
+Global tile sprites
+Change tile type to smaller var
+
 Need a natural braking effect from water drag (hopefully can be constant); should affect velocity and angular velocity

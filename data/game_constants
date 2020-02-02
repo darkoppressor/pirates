@@ -65,6 +65,24 @@
 </game_constant>
 
 <game_constant>
+	name:maximum_chunks_in_cache
+	value:3
+	type:uint32_t
+</game_constant>
+
+<game_constant>
+	name:maximum_chunks_in_pool
+	value:36
+	type:uint32_t
+</game_constant>
+
+<game_constant>
+	name:chunk_cache_range
+	value:2
+	type:int32_t
+</game_constant>
+
+<game_constant>
 	// pixels
 	name:ship_collision_reduction
 	value:1

@@ -31,6 +31,10 @@ class Ship {
         bool going;
         Sprite sprite;
 
+        // For displaying dev info:
+        Vector lastForce;
+        double lastAngularForce;
+
         // Derived from type:
         ShipType* getType() const;
         double getMass() const;
@@ -40,9 +44,6 @@ class Ship {
 
         // local pixels
         Collision_Rect<double> getCollisionBox() const;
-
-        // For displaying dev info:
-        double lastAngularForce;
 
         void stop();
         void steer();
@@ -74,11 +75,14 @@ class Ship {
         double getAngle() const;
         double getAngularVelocity() const;
         double getLastAngularForce() const;
+        Vector getVelocity() const;
+        Vector getLastForce() const;
 
         void setSteerDirection(const std::string& direction);
         void setGoing(bool going);
         void accelerate();
-        void movement();
+        void movement(bool isPlayer = false);
+        void chunkMove(const Coords<std::int32_t>& globalChunkMovement);
 
         void animate();
         void render() const;

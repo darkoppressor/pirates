@@ -3,6 +3,8 @@ project(pirates)
 
 set(SOURCE_FILES
 button_events_game.cpp
+chunk_cache.cpp
+chunk.cpp
 console_commands_defs.cpp
 data_manager_defs.cpp
 dev_info.cpp
@@ -190,7 +192,7 @@ add_executable(Release-macOS-x86_64 ${SOURCE_FILES})
 
 set_target_properties(Release-macOS-x86_64 PROPERTIES
 OUTPUT_NAME Pirates-macOS-x86_64
-COMPILE_FLAGS "-fexpensive-optimizations -O2 -std=c++11 -Wall -Wextra -m64 -stdlib=libc++ -DGAME_OS_MACOS"
+COMPILE_FLAGS "-O2 -std=c++11 -Wall -Wextra -m64 -stdlib=libc++ -DGAME_OS_MACOS"
 )
 
 target_include_directories(Release-macOS-x86_64 PRIVATE

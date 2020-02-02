@@ -5,6 +5,7 @@
 #include "game.h"
 #include "game_data.h"
 #include "game_constants.h"
+#include "chunk_cache.h"
 
 #include <render.h>
 #include <game_window.h>
@@ -14,20 +15,37 @@
 #include <engine_data.h>
 #include <engine.h>
 #include <log.h>
+#include <engine_strings.h>
+
+#include <SDL.h>
 
 using namespace std;
 
 RNG Game::rng;
-string Game::selectedWorldType;
-WorldType* Game::worldType;
-vector<vector<Tile>> Game::tiles;
+string Game::selectedWorldType = "";
+WorldType* Game::worldType = 0;
+Coords<int32_t> Game::globalChunkPosition;
+deque<Chunk*> Game::chunkPool;
+vector<vector<size_t>> Game::chunks;
 Player Game::player;
 vector<Ship> Game::ships;
+void Game::setGlobalChunkPosition (const Coords<int32_t>& spawnPosition) {
+    globalChunkPosition = Coords<int32_t>(spawnPosition.x / Game_Constants::CHUNK_SIZE,
+                                          spawnPosition.y / Game_Constants::CHUNK_SIZE);
+}
+
 int32_t Game::getChunkWidth () {
     return worldType ? worldType->width : 0;
 }
 int32_t Game::getChunkHeight () {
     return worldType ? worldType->height : 0;
+}
+
+int32_t Game::getLocalChunkWidth () {
+    return Game_Constants::LOCAL_WORLD_SIZE;
+}
+int32_t Game::getLocalChunkHeight () {
+    return Game_Constants::LOCAL_WORLD_SIZE;
 }
 
 Collision_Rect<int32_t> Game::getCameraTileBox () {
@@ -41,11 +59,90 @@ Collision_Rect<int32_t> Game::getCameraTileBox () {
     return Collision_Rect<int32_t>(cameraTileX, cameraTileY, endTileX, endTileY);
 }
 
+size_t Game::getChunk (const Coords<int32_t>& globalChunkPosition) {
+    bool chunkRetrieved = false;
+    size_t chunkIndex = 0;
+
+    // Retrieve the chunk from the chunk pool if possible
+    for (size_t i = 0; i < chunkPool.size(); i++) {
+        if (chunkPool[i]->getGlobalChunkPosition() == globalChunkPosition) {
+            // Renew this chunk's position in the chunk pool
+
+            chunkPool.push_back(chunkPool[i]);
+            chunkPool.erase(chunkPool.begin() + i);
+
+            chunkErased(i);
+
+            chunkRetrieved = true;
+            chunkIndex = chunkPool.size() - 1;
+
+            break;
+        }
+    }
+
+    if (!chunkRetrieved) {
+        Chunk* chunk = new Chunk;
+        Game_Data::loadChunk(worldType->directory, globalChunkPosition, chunk);
+        chunkPool.push_back(chunk);
+
+        chunkRetrieved = true;
+        chunkIndex = chunkPool.size() - 1;
+    }
+
+    if (!chunkRetrieved) {
+        Log::add_error("Error accessing chunk");
+
+        Engine::quit();
+    }
+
+    return chunkIndex;
+}
+
+void Game::chunkErased (size_t chunkIndex) {
+    for (int32_t x = 0; x < getLocalChunkWidth(); x++) {
+        for (int32_t y = 0; y < getLocalChunkHeight(); y++) {
+            if (chunks[x][y] > chunkIndex) {
+                chunks[x][y]--;
+            }
+        }
+    }
+}
+
+void Game::cleanChunkPool () {
+    for (size_t i = 0; i < chunkPool.size() && chunkPool.size() > Game_Constants::MAXIMUM_CHUNKS_IN_POOL; i++) {
+        bool chunkInUseLocally = false;
+
+        for (int32_t x = 0; x < getLocalChunkWidth() && !chunkInUseLocally; x++) {
+            for (int32_t y = 0; y < getLocalChunkHeight(); y++) {
+                if (chunks[x][y] == i) {
+                    chunkInUseLocally = true;
+                    break;
+                }
+            }
+        }
+
+        if (!chunkInUseLocally) {
+            delete chunkPool[i];
+            chunkPool.erase(chunkPool.begin() + i);
+            chunkErased(i);
+        }
+    }
+}
+
 void Game::clear_world () {
     selectedWorldType = "";
     worldType = 0;
-    tiles.clear();
-    player.reset();
+    globalChunkPosition.x = 0;
+    globalChunkPosition.y = 0;
+    ChunkCache::clear();
+
+    for (auto chunk : chunkPool) {
+        delete chunk;
+    }
+
+    chunkPool.clear();
+    chunks.clear();
+    player.clear();
     ships.clear();
     Game_Data::unloadEmptyChunks();
 }
@@ -63,39 +160,37 @@ void Game::generate_world () {
 
     Game_Data::loadEmptyChunks(worldType->directory);
 
-    player.setGlobalChunkPosition(worldType->spawnPosition);
+    setGlobalChunkPosition(worldType->spawnPosition);
 
-    tiles.resize(Game_Constants::LOCAL_WORLD_SIZE* Game_Constants::CHUNK_SIZE,
-                 vector<Tile>(Game_Constants::LOCAL_WORLD_SIZE* Game_Constants::CHUNK_SIZE));
-
-    for (int32_t x = 0, globalX = player.getGlobalChunkPosition().x - 1; x < Game_Constants::LOCAL_WORLD_SIZE;
-         x++, globalX++) {
-        for (int32_t y = 0, globalY = player.getGlobalChunkPosition().y - 1; y < Game_Constants::LOCAL_WORLD_SIZE;
-             y++, globalY++) {
-            Game_Data::loadChunk(worldType->directory, Coords<int32_t>(globalX, globalY), tiles, Coords<int32_t>(x, y));
-        }
-    }
+    chunks.resize(getLocalChunkWidth(), vector<size_t>(getLocalChunkHeight()));
 
     ships.push_back(Ship("0",
                          Coords<int32_t>(Game_Constants::CHUNK_SIZE + worldType->spawnPosition.x -
-                                         player.getGlobalChunkPosition().x *
+                                         globalChunkPosition.x *
                                          Game_Constants::CHUNK_SIZE,
                                          Game_Constants::CHUNK_SIZE + worldType->spawnPosition.y -
-                                         player.getGlobalChunkPosition().y *
-                                         Game_Constants::CHUNK_SIZE)));
+                                         globalChunkPosition.y * Game_Constants::CHUNK_SIZE)));
+
+    if (!ChunkCache::setup()) {
+        Engine::quit();
+    }
+
+    updateGlobalChunkPosition(Coords<int32_t>(0, 0));
 }
 
-void Game::tick () {}
+void Game::tick () {
+    ChunkCache::manage();
+}
 
 void Game::ai () {}
 
 void Game::movement () {
-    for (size_t i = 0; i < ships.size(); i++) {
-        ships[i].accelerate();
+    for (auto& ship : ships) {
+        ship.accelerate();
     }
 
     for (size_t i = 0; i < ships.size(); i++) {
-        ships[i].movement();
+        ships[i].movement(i == 0);
     }
 }
 
@@ -110,8 +205,8 @@ void Game::animate () {
     // Animate each on-screen tile
     for (int32_t x = cameraTileBox.x; x < cameraTileBox.w; x++) {
         for (int32_t y = cameraTileBox.y; y < cameraTileBox.h; y++) {
-            if (x >= 0 && y >= 0 && x < getTileWidth() && y < getTileHeight()) {
-                tiles[x][y].animate();
+            if (x >= 0 && y >= 0 && x < getLocalTileWidth() && y < getLocalTileHeight()) {
+                getTile(Coords<int32_t>(x, y)).animate();
             }
         }
     }
@@ -125,8 +220,8 @@ void Game::render () {
     // Render each on-screen tile
     for (int32_t x = cameraTileBox.x; x < cameraTileBox.w; x++) {
         for (int32_t y = cameraTileBox.y; y < cameraTileBox.h; y++) {
-            if (x >= 0 && y >= 0 && x < getTileWidth() && y < getTileHeight()) {
-                tiles[x][y].render(Coords<int32_t>(x, y));
+            if (x >= 0 && y >= 0 && x < getLocalTileWidth() && y < getLocalTileHeight()) {
+                getTile(Coords<int32_t>(x, y)).render(Coords<int32_t>(x, y));
             }
         }
     }
@@ -146,6 +241,75 @@ void Game::render_background () {
     Render::render_rectangle(0.0, 0.0, Game_Window::width(), Game_Window::height(), 1.0, "ui_black");
 }
 
+const deque<Chunk*>& Game::getChunkPool () {
+    return chunkPool;
+}
+
+void Game::addToChunkPool (Chunk* chunk) {
+    chunkPool.push_back(chunk);
+
+    cleanChunkPool();
+}
+
+const Coords<int32_t>& Game::getGlobalChunkPosition () {
+    return globalChunkPosition;
+}
+
+void Game::updateGlobalChunkPosition (const Coords<int32_t>& globalChunkMovement) {
+    globalChunkPosition.x += globalChunkMovement.x;
+    globalChunkPosition.y += globalChunkMovement.y;
+
+    for (int32_t x = 0, globalX = globalChunkPosition.x - 1; x < getLocalChunkWidth();
+         x++, globalX++) {
+        for (int32_t y = 0, globalY = globalChunkPosition.y - 1; y < getLocalChunkHeight();
+             y++, globalY++) {
+            size_t chunkIndex = getChunk(Coords<int32_t>(globalX, globalY));
+
+            if (chunks[x][y] != chunkIndex) {
+                chunks[x][y] = chunkIndex;
+            }
+        }
+    }
+
+    cleanChunkPool();
+
+    if (globalChunkMovement != Coords<int32_t>(0, 0)) {
+        for (auto& ship : ships) {
+            ship.chunkMove(globalChunkMovement);
+        }
+    }
+
+    ChunkCachingData chunkCachingData;
+    chunkCachingData.worldDirectory = worldType->directory;
+    chunkCachingData.globalChunkDimensions = Coords<int32_t>(getChunkWidth(), getChunkHeight());
+
+    for (auto chunk : chunkPool) {
+        chunkCachingData.chunkPoolGlobalChunkPositions.push_back(chunk->getGlobalChunkPosition());
+    }
+
+    chunkCachingData.worldGlobalChunkPosition = globalChunkPosition;
+
+    ChunkCache::placeOrder(chunkCachingData);
+}
+
+Tile& Game::getTile (const Coords<int32_t>& localTilePosition) {
+    if (localTilePosition.x >= 0 && localTilePosition.y >= 0 && localTilePosition.x < getLocalTileWidth() &&
+        localTilePosition.y < getLocalTileHeight()) {
+        int32_t chunkX = localTilePosition.x / Game_Constants::CHUNK_SIZE;
+        int32_t chunkY = localTilePosition.y / Game_Constants::CHUNK_SIZE;
+
+        return chunkPool[chunks[chunkX][chunkY]]->getTile(Coords<int32_t>(localTilePosition.x - chunkX *
+                                                                          Game_Constants::CHUNK_SIZE,
+                                                                          localTilePosition.y - chunkY *
+                                                                          Game_Constants::CHUNK_SIZE));
+    } else {
+        Log::add_error("Error accessing local tile (" + Strings::num_to_string(
+                           localTilePosition.x) + ", " + Strings::num_to_string(localTilePosition.y) + ")");
+
+        Engine::quit();
+    }
+}
+
 int32_t Game::getTileWidth () {
     return getChunkWidth() * Game_Constants::CHUNK_SIZE;
 }
@@ -160,6 +324,20 @@ double Game::getPixelHeight () {
     return getTileHeight() * Game_Constants::TILE_SIZE;
 }
 
+int32_t Game::getLocalTileWidth () {
+    return getLocalChunkWidth() * Game_Constants::CHUNK_SIZE;
+}
+int32_t Game::getLocalTileHeight () {
+    return getLocalChunkWidth() * Game_Constants::CHUNK_SIZE;
+}
+
+double Game::getLocalPixelWidth () {
+    return getLocalTileWidth() * Game_Constants::TILE_SIZE;
+}
+double Game::getLocalPixelHeight () {
+    return getLocalTileHeight() * Game_Constants::TILE_SIZE;
+}
+
 uint8_t Game::getSeaLevel () {
     return worldType ? worldType->seaLevel : 0;
 }
@@ -170,10 +348,6 @@ uint8_t Game::getShallowsLevel () {
 
 uint8_t Game::getSandLevel () {
     return worldType ? worldType->sandLevel : 0;
-}
-
-const vector<vector<Tile>>& Game::getTiles () {
-    return tiles;
 }
 
 const Player& Game::getPlayer () {
