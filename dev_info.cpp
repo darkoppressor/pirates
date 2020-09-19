@@ -2,6 +2,8 @@
 /* This file is licensed under the MIT License. */
 /* See the file docs/LICENSE.txt for the full license text. */
 
+#include "game.h"
+
 #include <engine.h>
 #include <game_manager.h>
 #include <font.h>
@@ -22,6 +24,48 @@ void Engine::render_dev_info () {
         msg += "Camera Size: " + Strings::num_to_string(Game_Manager::camera.w / Game_Manager::camera_zoom) + "," +
                Strings::num_to_string(Game_Manager::camera.h / Game_Manager::camera_zoom) + "\n";
         msg += "Camera Zoom: " + Strings::num_to_string(Game_Manager::camera_zoom) + "\n";
+
+        /*msg += "\nChunk pool (" + Strings::num_to_string(Game::getChunkPool().size()) + "): \n";
+
+           size_t i = 0;
+
+           for (auto chunk : Game::getChunkPool()) {
+            msg += " (" + Strings::num_to_string(chunk->getGlobalChunkPosition().x) + "," + Strings::num_to_string(
+                chunk->getGlobalChunkPosition().y) + ")";
+
+            if (i == 7) {
+                i = 0;
+                msg += "\n";
+            } else {
+                i++;
+            }
+           }
+
+           msg += "\n";*/
+
+        msg += "\nPlayer's flagship:\n------------------------------------------------------------\n";
+        msg += " Global position:\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getGlobalTilePosition().x) + " tiles, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getGlobalTilePosition().y) + " tiles\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getGlobalChunkPosition().x) + " chunks, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getGlobalChunkPosition().y) + " chunks\n";
+        msg += " Local position:\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getBox().get_center().x) + " meters, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getBox().get_center().y) + " meters\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getTilePosition().x) + " tiles, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getTilePosition().y) + " tiles\n";
+        msg += "  " + Strings::num_to_string(Game::getPlayerFlagship().getChunkPosition().x) + " chunks, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getChunkPosition().y) + " chunks\n";
+        msg += "\n Velocity: " + Strings::num_to_string(Game::getPlayerFlagship().getVelocity().magnitude) +
+               " meters / second, " + Strings::num_to_string(Game::getPlayerFlagship().getVelocity().direction) +
+               " degrees\n";
+        msg += " Force: " + Strings::num_to_string(Game::getPlayerFlagship().getLastForce().magnitude) + " newtons, " +
+               Strings::num_to_string(Game::getPlayerFlagship().getLastForce().direction) + " degrees\n";
+        msg += " Angle: " + Strings::num_to_string(Game::getPlayerFlagship().getAngle()) + " degrees\n";
+        msg += " Angular velocity: " + Strings::num_to_string(Game::getPlayerFlagship().getAngularVelocity()) +
+               " degrees / second\n";
+        msg += " Angular force: " + Strings::num_to_string(Game::getPlayerFlagship().getLastAngularForce()) +
+               " newtons\n";
     }
 
     if (msg.length() > 0) {

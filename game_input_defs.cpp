@@ -2,6 +2,8 @@
 /* This file is licensed under the MIT License. */
 /* See the file docs/LICENSE.txt for the full license text. */
 
+#include "game.h"
+
 #include <game_manager.h>
 #include <network_engine.h>
 #include <network_server.h>
@@ -83,10 +85,24 @@ void Game_Manager::handle_input_states () {
 
     if (in_progress) {
         if (!paused) {
-            // Example multiplayer command state
-            /**if(Object_Manager::game_command_state("some_command")){
-                command_states.push_back("some_command");
-               }*/
+            // Steer the ship via directional keys
+            if (Game::moveInputState("left")) {
+                Game::getPlayerFlagship().setSteerDirection("left");
+            }
+
+            if (Game::moveInputState("right")) {
+                Game::getPlayerFlagship().setSteerDirection("right");
+            }
+
+            if (Game::moveInputState("left") && Game::moveInputState("right")) {
+                Game::getPlayerFlagship().setSteerDirection("left");
+            }
+
+            if (!Game::moveInputState("left") && !Game::moveInputState("right")) {
+                Game::getPlayerFlagship().setSteerDirection("none");
+            }
+
+            Game::getPlayerFlagship().setGoing(Object_Manager::game_command_state("go"));
         }
     }
 }

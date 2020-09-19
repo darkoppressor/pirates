@@ -9,21 +9,41 @@
 </game_command>
 
 <game_command>
-	name:chat
-	title:Chat
-	description:Pull up the chat box
+	name:go
+	title:Go
+	description:Make go
 	developer:false
-	key:Return
+	key:Up
 	controller_button:
 	controller_axis:
 </game_command>
 
 <game_command>
-	name:scoreboard
-	title:Scoreboard
-	description:Hold to display the scoreboard
+	name:left
+	title:Left
+	description:Move left
 	developer:false
-	key:Tab
-	controller_button:
+	key:Left
+	controller_button:dpleft
 	controller_axis:
+</game_command>
+
+<game_command>
+	name:right
+	title:Right
+	description:Move right
+	developer:false
+	key:Right
+	controller_button:dpright
+	controller_axis:
+</game_command>
+
+<game_command>
+	name:move_stick_horizontal
+	title:Horizontal Stick
+	description:Move horizontally via joystick
+	developer:false
+	key:
+	controller_button:
+	controller_axis:leftx
 </game_command>

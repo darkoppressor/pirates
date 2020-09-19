@@ -1,0 +1,10 @@
+<world>
+	name:caribbean
+	displayName:Caribbean
+	directory:caribbean
+	dimensions:44x27
+	seaLevel:128
+	shallowsLevel:129
+	sandLevel:130
+	spawnPosition:27214,30116
+</world>

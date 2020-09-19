@@ -10,10 +10,12 @@ screenshots/**
 data/images/**
 data/music/**
 data/sounds/**
+data/world_data/**
 
 !data/images/.gitkeep
 !data/music/.gitkeep
 !data/sounds/.gitkeep
+!data/world_data/.gitkeep
 
 development/android/.gradle/**
 development/android/assets/**
@@ -32,6 +34,12 @@ development/android/jni/arm64-v8a/**
 development/android/jni/x86/**
 development/android/jni/x86_64/**
 development/android/local.properties
+
+tools/bin/**
+tools/include/**
+tools/lib/**
+tools/share/**
+tools/pyvenv.cfg
 
 /*lib64
 /*pyvenv.cfg
